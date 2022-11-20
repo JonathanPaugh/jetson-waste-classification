@@ -1,12 +1,10 @@
-from os import mkdir
-from os.path import join
-
 from keras.models import Sequential
 from keras.layers import Rescaling, Conv2D, MaxPooling2D, Flatten, Dense
 from keras.losses import SparseCategoricalCrossentropy
 import matplotlib.pyplot as plt
 
 from core.loader import load_dataset
+from utils.plot import save_plot
 import configs.model as config
 
 
@@ -37,15 +35,7 @@ def plot_history(history):
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Accuracy')
     ax.legend()
-
-    try:
-        mkdir(config.OUTPUT_PATH)
-    except FileExistsError:
-        pass
-
-    fig_path = join(config.OUTPUT_PATH, 'history.png')
-    fig.savefig(fig_path, bbox_inches='tight')
-    print(f'Wrote plot to {fig_path}')
+    save_plot(fig, 'history.png')
 
 def evaluate_model(model, test_data, verbose=2):
     _, test_acc = model.evaluate(test_data, verbose=verbose)
