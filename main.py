@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from core.loader import load_dataset
 from core.model import compile_model
 from utils.plot import save_plot
+
 import configs.model as config
 
 
@@ -17,7 +18,7 @@ def plot_history(history):
 
 def evaluate_model(model, test_data, verbose=2):
     _, test_acc = model.evaluate(test_data, verbose=verbose)
-    print(f'Accuracy on test set after {config.NUM_EPOCHS} epoch(s):'
+    print(f'Accuracy on test set after {config.MODEL_NUM_EPOCHS} epoch(s):'
         + f' {test_acc*100:.2f}%')
 
 def main():
@@ -26,7 +27,9 @@ def main():
     history = model.fit(
         train_data,
         validation_data=test_data,
-        epochs=config.NUM_EPOCHS,
+        epochs=config.MODEL_NUM_EPOCHS,
+        batch_size=config.MODEL_BATCH_SIZE,
+        workers=config.MODEL_WORKERS,
     )
     plot_history(history)
     evaluate_model(model, test_data)

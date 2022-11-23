@@ -9,7 +9,7 @@ def load_dataset():
         'validation_split': config.VALIDATION_SPLIT,
         'seed': config.SEED,
         'image_size': config.IMAGE_SIZE,
-        'batch_size': config.BATCH_SIZE,
+        'batch_size': config.LOADER_BATCH_SIZE,
     }
 
     train_data = image_dataset_from_directory(dataset_dir, subset='training', **loader_params)
