@@ -36,6 +36,7 @@ def main():
             epochs=config.MODEL_NUM_EPOCHS,
             batch_size=config.MODEL_BATCH_SIZE,
             workers=config.MODEL_WORKERS,
+            use_multiprocessing=True
         )
         serialize_weights(model, 'ckpt')
         plot_history(history)
