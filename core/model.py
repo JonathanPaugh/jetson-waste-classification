@@ -1,6 +1,6 @@
-from keras.layers import Rescaling, MaxPooling2D, Flatten, Dense, Conv2D
-from keras.losses import SparseCategoricalCrossentropy
-from keras.models import Sequential
+from tensorflow.python.keras.layers import Rescaling, MaxPooling2D, Flatten, Dense, Conv2D
+from tensorflow.python.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.python.keras.models import Sequential
 
 
 def compile_model(num_classes):

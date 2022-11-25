@@ -1,5 +1,5 @@
 from pathlib import Path
-from keras.preprocessing.image_dataset import image_dataset_from_directory
+from tensorflow.python.keras.preprocessing.image_dataset import image_dataset_from_directory
 import configs.model as config
 
 
