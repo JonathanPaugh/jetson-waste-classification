@@ -1,25 +1,9 @@
-from cv2 import imshow, waitKey
-from nanocamera import Camera
-from configs.model import IMAGE_SIZE
+import jetson.utils
 
-WIDTH, HEIGHT = IMAGE_SIZE
+camera = jetson.utils.videoSource("/dev/video0")
 
-camera = Camera(camera_type=1, device_id=0, width=WIDTH, height=HEIGHT)
+frame = camera.Capture()
 
-while camera.isReady():
-    try:
-        # read the camera image
-        frame = camera.read()
-        # display the frame
-        imshow("Video Frame", frame)
-        print("HI")
-        if waitKey(25) & 0xFF == ord('q'):
-            break
-    except KeyboardInterrupt:
-        break
+print(frame)
 
-    # close the camera instance
-camera.release()
-
-# remove camera object
-del camera
+input("Press any key...")
