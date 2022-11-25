@@ -1,6 +1,5 @@
 DATASET_PATH = 'dataset'
 OUTPUT_PATH = 'dist'
-PICKLE_PATH = 'pickle'
 
 SEED = 0
 VALIDATION_SPLIT = 0.2

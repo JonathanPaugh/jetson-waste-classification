@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from core.loader import load_dataset
 from core.model import compile_model
 from utils.plot import save_plot
-from utils.pickle import has_saved_weights, serialize_weights
+from utils.pickle import has_saved_weights, load_weights, serialize_weights
 
 import configs.model as config
 
@@ -28,7 +28,7 @@ def main():
     train_data, test_data = load_dataset()
     model = compile_model(num_classes=len(train_data.class_names))
     if has_saved_weights():
-        load_status = model.load_weights(f'./{config.PICKLE_PATH}/ckpt')
+        load_status = load_weights(model)
     else:
         history = model.fit(
             train_data,
@@ -38,7 +38,7 @@ def main():
             workers=config.MODEL_WORKERS,
             use_multiprocessing=True
         )
-        serialize_weights(model, 'ckpt')
+        serialize_weights(model)
         plot_history(history)
     evaluate_model(model, test_data)
 

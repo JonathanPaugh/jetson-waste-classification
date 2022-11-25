@@ -5,4 +5,3 @@ env/
 .DS_Store
 .idea
 *.bat
-pickle/
