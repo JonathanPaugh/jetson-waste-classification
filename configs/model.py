@@ -1,7 +1,8 @@
 import math
 import os
 
-DATASET_PATH = 'dataset'
+DATASET_TRAIN_PATH = 'dataset/train'
+DATASET_TEST_PATH = 'dataset/test'
 OUTPUT_PATH = 'dist'
 
 SEED = 0

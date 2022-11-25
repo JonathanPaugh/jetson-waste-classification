@@ -3,8 +3,8 @@ from tensorflow.python.keras.preprocessing.image_dataset import image_dataset_fr
 import configs.model as config
 
 
-def load_dataset():
-    dataset_dir = Path(config.DATASET_PATH)
+def load_train_dataset():
+    dataset_dir = Path(config.DATASET_TRAIN_PATH)
     loader_params = {
         'validation_split': config.VALIDATION_SPLIT,
         'seed': config.SEED,
@@ -15,3 +15,15 @@ def load_dataset():
     train_data = image_dataset_from_directory(dataset_dir, subset='training', **loader_params)
     val_data = image_dataset_from_directory(dataset_dir, subset='validation', **loader_params)
     return train_data, val_data
+
+
+def load_test_dataset():
+    dataset_dir = Path(config.DATASET_TEST_PATH)
+    loader_params = {
+        'labels': None,
+        'seed': config.SEED,
+        'image_size': config.IMAGE_SIZE,
+        'batch_size': config.LOADER_BATCH_SIZE,
+    }
+
+    return image_dataset_from_directory(dataset_dir, **loader_params)

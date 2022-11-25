@@ -17,7 +17,7 @@ def compile_model(num_classes):
         MaxPooling2D(),
         Flatten(),
         Dense(128, activation='relu'),
-        Dense(num_classes),
+        Dense(num_classes, activation='softmax'),
     ])
     model.compile(
         optimizer='adam',
