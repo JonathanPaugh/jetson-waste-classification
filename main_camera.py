@@ -1,9 +1,13 @@
-import jetson.utils
+from datetime import datetime
+from os import path
 
-camera = jetson.utils.videoSource("/dev/video0")
+import cv2
 
-frame = camera.Capture()
+from configs.model import OUTPUT_PATH
+from utils_jetson import sensor_camera
 
-print(frame)
-
-input("Press any key...")
+while not input("Press enter to take snapshot"):
+    image = sensor_camera.snapshot()
+    file = path.join(OUTPUT_PATH, f"snapshot-{datetime.now()}.png")
+    cv2.imwrite(file, image)
+    print(f"Wrote snapshot: {file}")
