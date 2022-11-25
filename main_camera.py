@@ -1,7 +1,6 @@
+import cv2
 from datetime import datetime
 from os import path
-import cv2
-
 from configs.model import OUTPUT_PATH
 from utils_jetson import sensor_camera
 
