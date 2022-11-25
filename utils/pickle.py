@@ -41,7 +41,7 @@ def has_trained_model(prefix=DEFAULT_PREFIX):
 def import_trained_model(model, prefix=DEFAULT_PREFIX):
     _load_weights(model, prefix)
     history = _read_history(prefix)
-    print(f'Trained model imported with prefix: {prefix}')
+    print(f'Trained model imported from prefix: {prefix}')
     return history
 
 
