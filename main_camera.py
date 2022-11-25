@@ -1,6 +1,5 @@
 from datetime import datetime
 from os import path
-
 import cv2
 
 from configs.model import OUTPUT_PATH
