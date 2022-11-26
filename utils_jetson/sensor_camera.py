@@ -2,7 +2,7 @@ import os
 from jetson_utils import videoSource, saveImage, cudaDeviceSynchronize
 from os import path
 from configs.model import IMAGE_SIZE, OUTPUT_PATH
-import cv2
+from core.loader import load_image_tensor
 
 VIDEO_PATH = "/dev/video0"
 TEMP_FILE = path.join(OUTPUT_PATH, "temp.png")
@@ -41,7 +41,7 @@ def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
 
     del capture
 
-    pixels = cv2.imread(TEMP_FILE)
+    image = load_image_tensor(TEMP_FILE)
     os.remove(TEMP_FILE)
 
-    return pixels
+    return image
