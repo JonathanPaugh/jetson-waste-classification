@@ -1,10 +1,14 @@
-from tensorflow.python.framework.ops import convert_to_tensor
+from datetime import datetime
+from os import path
 
-from configs.model import DATASET_TEST_PATH, IS_JETSON
+import cv2
+from tensorflow.python.framework.ops import convert_to_tensor
+from configs.model import DATASET_TEST_PATH, IS_JETSON, OUTPUT_PATH
 from core.loader import load_train_dataset, load_test_dataset
 from core.model import compile_model
 from library.option_input import run_menu, OptionInput
 from utils.pickle import import_trained_model, has_trained_model
+from utils.sound import play_sound
 from utils_jetson import sensor_camera
 from utils_jetson.hardware import tweak_hardware_settings
 from utils_jetson.sensor_sniffer import sniff
@@ -52,13 +56,19 @@ def main():
             print('Taking snapshot...')
             image = sensor_camera.snapshot()
 
+            file = path.join(OUTPUT_PATH, f'snapshot-{datetime.now()}.png')
+            cv2.imwrite(file, image.numpy())
+            print(f'Wrote snapshot: {file}')
+
             print('Predicting...')
             test_data = convert_to_tensor([image])
-            output_predictions(model, test_data, class_names)
 
-        run_menu('Ready to predict', [
+            class_name, probability = output_predictions(model, test_data, class_names)[0]
+            play_sound(class_name)
+
+        run_menu('Jetson prediction pipeline', [
             OptionInput.MENU_EXIT,
-            (f'Predict snapshot', predict),
+            ('Take snapshot and predict', predict),
         ])
 
     def predict_scent():
@@ -66,8 +76,8 @@ def main():
 
     run_menu('Prediction Menu', [
         OptionInput.MENU_EXIT,
-        (f'Predict from {DATASET_TEST_PATH} directory', predict_test),
-        (f'Predict jetson nano pipeline', predict_jetson),
+        (f'Predict using {DATASET_TEST_PATH} directory', predict_test),
+        (f'Predict using jetson nano pipeline', predict_jetson),
         (f'Predict scent', predict_scent),
     ])
 

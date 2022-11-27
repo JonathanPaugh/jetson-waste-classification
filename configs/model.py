@@ -1,4 +1,3 @@
-import math
 import os
 from os.path import exists, isfile
 
@@ -19,6 +18,6 @@ MODEL_NUM_FINE_TUNING_EPOCHS = 20
 MODEL_FINE_TUNING = True
 MODEL_EARLY_STOPPING_PATIENCE = 3  # stop after x consecutive epochs with no improvement
 MODEL_WORKERS = os.cpu_count() | 1
-MODEL_BATCH_SIZE = int(math.pow(2, 3)) if IS_JETSON else int(math.pow(2, 6))
+MODEL_BATCH_SIZE = int(2 ** 3) if IS_JETSON else int(2 ** 6)
 
-LOADER_BATCH_SIZE = int(math.pow(2, 3)) if IS_JETSON else int(math.pow(2, 5))
+LOADER_BATCH_SIZE = int(2 ** 3) if IS_JETSON else int(2 ** 5)
