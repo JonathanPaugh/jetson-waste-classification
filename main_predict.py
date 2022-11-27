@@ -5,6 +5,7 @@ from core.loader import load_train_dataset, load_test_dataset
 from core.model import compile_model
 from library.option_input import run_menu, OptionInput
 from utils.pickle import import_trained_model, has_trained_model
+from utils.sound import play_sound
 from utils_jetson import sensor_camera
 from utils_jetson.hardware import tweak_hardware_settings
 from utils_jetson.sensor_sniffer import sniff
@@ -41,7 +42,9 @@ def main():
 
     def predict_test():
         test_data = load_test_dataset()
-        output_predictions(model, test_data, class_names)
+        predictions = output_predictions(model, test_data, class_names)
+        for class_name, probability in predictions:
+            play_sound(class_name)
 
     def predict_jetson():
         if not IS_JETSON:

@@ -1,21 +1,20 @@
+from os.path import join
+
 from playsound import playsound
 
-# mp3 files created from: https://ttsmp3.com/
+SOUND_DIRECTORY = 'sound'
+SOUND_EXTENSION = '.mp3'
 
-MP3_PATH = 'absolute path to mp3 folder'
-
-sort_colour = {
-    'glass': ['blue','bin'],
-    'metal': ['blue','bin'],
-    'plastic': ['blue','bin'],
-    'trash': ['black','bin'],
-    'cardboard':['yellow','bin'],
-    'paper': ['yellow','bin'],
+sound_map = {
+    'glass': ['blue', 'bin'],
+    'metal': ['blue', 'bin'],
+    'plastic': ['blue', 'bin'],
+    'trash': ['black', 'bin'],
+    'cardboard': ['yellow', 'bin'],
+    'paper': ['yellow', 'bin'],
 }
 
-def play_sound(item_class):
-
-    playsound(f'{MP3_PATH}{sort_colour[item_class][0]}.mp3')
-
-    playsound(f'{MP3_PATH}{sort_colour[item_class][1]}.mp3')
-
+def play_sound(class_name):
+    color, container = sound_map[class_name]
+    playsound(join(SOUND_DIRECTORY, f'{color}{SOUND_EXTENSION}'))
+    playsound(join(SOUND_DIRECTORY, f'{container}{SOUND_EXTENSION}'))

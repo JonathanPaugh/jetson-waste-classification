@@ -2,6 +2,7 @@ __pycache__/
 dataset/
 dist/
 env/
+sound/
 .DS_Store
 .idea
 .jetson
