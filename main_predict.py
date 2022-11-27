@@ -1,8 +1,8 @@
 from tensorflow.python.framework.ops import convert_to_tensor
 
 from configs.model import DATASET_TEST_PATH
-from core.loader import load_train_dataset, load_test_dataset, load_image_tensor
-from core.model import compile_model, train_model
+from core.loader import load_train_dataset, load_test_dataset
+from core.model import compile_model
 from library.option_input import run_menu, OptionInput
 from utils.pickle import import_trained_model, has_trained_model
 from utils_jetson import sensor_camera
@@ -11,6 +11,7 @@ from utils_jetson.sensor_sniffer import sniff
 
 def output_predictions(model, test_data, class_names):
     predictions = predict_classes(model, test_data, class_names)
+    print("Model predictions:")
     print(predictions)
     return predictions
 
@@ -29,23 +30,20 @@ def extract_best_prediction_class(prediction, class_names):
 def main():
     tweak_hardware_settings()
 
-    train_data, valid_data = load_train_dataset()
+    if not has_trained_model():
+        print('Predictions require an exported trained model')
+        return
+
+    train_data, _ = load_train_dataset()
     class_names = train_data.class_names
     model = compile_model(num_classes=len(class_names))
+    import_trained_model(model)
 
     def predict_test():
-        train_model(model, train_data, valid_data)
         test_data = load_test_dataset()
-
         output_predictions(model, test_data, class_names)
 
     def predict_jetson():
-        if not has_trained_model():
-            print('Jetson nano requires an exported trained model')
-            return
-
-        import_trained_model(model)
-
         def predict():
             print('Taking snapshot...')
             image = sensor_camera.snapshot()
