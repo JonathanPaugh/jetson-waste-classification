@@ -52,7 +52,7 @@ def compile_model(num_classes):
     x = data_augmentation(inputs)
     x = Rescaling(1./255)(x)
     x = feature_extractor(x, training=False)  # force run in inference mode
-    x = Dropout(0.2)(x)
+    x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
 
@@ -96,7 +96,8 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
         export_trained_model(model, _history.history)
 
     if config.MODEL_FINE_TUNING and recompile_model_for_fine_tuning(model):
-        print(f'Fine tuning for up to {config.MODEL_NUM_FINE_TUNING_EPOCHS} epochs...')
+        print(f'Fine tuning for up to'
+            f' {config.MODEL_NUM_FINE_TUNING_EPOCHS} additional epochs...')
         _history_fine = model.fit(
             train_data,
             epochs=last_epoch + config.MODEL_NUM_FINE_TUNING_EPOCHS,
