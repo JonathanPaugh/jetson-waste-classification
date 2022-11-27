@@ -71,9 +71,10 @@ def recompile_model_for_fine_tuning(model):
         return False  # fail silently if no feature extractor found
 
     feature_extractor.trainable = True
+    feature_extractor.arguments = dict(batch_norm_momentum=0.997)
     model.summary()
     model.compile(
-        optimizer=adam_v2.Adam(learning_rate=1e-5),  # base learning rate / 10
+        optimizer=adam_v2.Adam(learning_rate=config.MODEL_FINE_TUNING_LEARNING_RATE),
         **_build_model_compile_params(),
     )
     return True
@@ -85,6 +86,8 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
 
     fit_params = _build_model_fit_params(validation_data=test_data)
 
+    print(f'Fitting model for up to'
+        f' {config.MODEL_NUM_EPOCHS} epochs...')
     _history = model.fit(
         train_data,
         epochs=config.MODEL_NUM_EPOCHS,
@@ -96,14 +99,15 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
         export_trained_model(model, _history.history)
 
     if config.MODEL_FINE_TUNING and recompile_model_for_fine_tuning(model):
-        print(f'Fine tuning for up to'
-            f' {config.MODEL_NUM_FINE_TUNING_EPOCHS} additional epochs...')
+        print(f'Fine tuning model for up to'
+            f' {config.MODEL_FINE_TUNING_NUM_EPOCHS} additional epochs...')
         _history_fine = model.fit(
             train_data,
-            epochs=last_epoch + config.MODEL_NUM_FINE_TUNING_EPOCHS,
+            epochs=last_epoch + config.MODEL_FINE_TUNING_NUM_EPOCHS,
             initial_epoch=last_epoch,
             **fit_params,
         )
+        print(f'Model fine tuning complete in {_history_fine[-1] + 1} epoch(s)')
         _merge_histories(_history, _history_fine)  # fit creates two separate history dicts
         if use_export:
             export_trained_model(model, _history.history)
