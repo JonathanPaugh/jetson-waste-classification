@@ -1,35 +1,38 @@
 from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, \
-    Rescaling, RandomFlip, RandomRotation, RandomZoom
+    InputLayer, Rescaling, RandomFlip, RandomRotation, RandomZoom
 from tensorflow.python.keras.models import Sequential
+from tensorflow_hub import KerasLayer
 from utils.pickle import has_trained_model, import_trained_model, export_trained_model
 import configs.model as config
 
 
-data_augmentation = Sequential([
-  RandomFlip("horizontal_and_vertical"),
-  RandomRotation(0.2),
-  RandomZoom(0.1),
-])
-
-
 def compile_model(num_classes):
+    INPUT_SHAPE = (*config.IMAGE_SIZE, 3)  # 3 for RGB
+
+    data_augmentation = Sequential([
+        RandomFlip("horizontal_and_vertical"),
+        RandomRotation(0.2),
+        RandomZoom(0.1),
+    ])
+
+    feature_extractor = KerasLayer(
+        config.MODEL_FEATURE_EXTRACTOR,
+        input_shape=INPUT_SHAPE,
+        trainable=False
+    )
+
     model = Sequential([
+        InputLayer(input_shape=INPUT_SHAPE),
         Rescaling(1./255),
         data_augmentation,
-        Conv2D(32, 3, activation='relu'),
-        MaxPooling2D(),
-        Conv2D(32, 3, activation='relu'),
-        MaxPooling2D(),
-        Conv2D(32, 3, activation='relu'),
-        MaxPooling2D(),
+        feature_extractor,
         Dropout(0.2),
-        Flatten(),
-        Dense(128, activation='relu'),
         Dense(num_classes, activation='softmax'),
     ])
+    model.summary()
     model.compile(
         optimizer='adam',
-        loss=SparseCategoricalCrossentropy(),
+        loss='sparse_categorical_crossentropy',
         metrics=['accuracy'],
     )
     return model

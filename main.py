@@ -27,7 +27,7 @@ def main():
 
     train_data, test_data = load_train_dataset()
     model = compile_model(num_classes=len(train_data.class_names))
-    history = train_model(model, train_data, test_data)
+    history = train_model(model, train_data, test_data, use_import=False)
     plot_history(history)
     evaluate_model(model, test_data)
 

@@ -11,11 +11,11 @@ OUTPUT_PATH = 'dist'
 
 SEED = 0
 VALIDATION_SPLIT = 0.2
-IMAGE_SIZE = (96, 72)
+IMAGE_SIZE = (224, 224)  # NOTE: should be compatible with expected feature extractor inputs
 
-MODEL_NUM_EPOCHS = 5
+MODEL_FEATURE_EXTRACTOR = 'https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4'
+MODEL_NUM_EPOCHS = 10
 MODEL_WORKERS = os.cpu_count() | 1
 MODEL_BATCH_SIZE = int(math.pow(2, 3)) if IS_JETSON else int(math.pow(2, 6))
 
 LOADER_BATCH_SIZE = int(math.pow(2, 3)) if IS_JETSON else int(math.pow(2, 5))
-
