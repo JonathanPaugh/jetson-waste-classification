@@ -41,20 +41,20 @@ def main():
 
     def predict_jetson():
         if not has_trained_model():
-            print("Jetson nano requires an exported trained model")
+            print('Jetson nano requires an exported trained model')
             return
 
         import_trained_model(model)
 
         def predict():
-            print("Taking snapshot...")
+            print('Taking snapshot...')
             image = sensor_camera.snapshot()
 
-            print("Predicting...")
+            print('Predicting...')
             test_data = convert_to_tensor([image])
             output_predictions(model, test_data, class_names)
 
-        run_menu("Ready to predict", [
+        run_menu('Ready to predict', [
             OptionInput.MENU_EXIT,
             (f'Predict snapshot', predict),
         ])
@@ -62,7 +62,7 @@ def main():
     def predict_scent():
         print(sniff())
 
-    run_menu("Prediction Menu", [
+    run_menu('Prediction Menu', [
         OptionInput.MENU_EXIT,
         (f'Predict from {DATASET_TEST_PATH} directory', predict_test),
         (f'Predict jetson nano pipeline', predict_jetson),

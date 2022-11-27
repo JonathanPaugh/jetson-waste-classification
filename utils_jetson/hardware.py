@@ -1,19 +1,13 @@
 from tensorflow.python.framework.config import set_memory_growth, list_physical_devices
-
+from configs.model import IS_JETSON
 from configs.jetson import GPU_ASYNC_MALLOC, GPU_MEMORY_GROWTH
 from os import environ
-from os.path import exists, isfile
-
-JETSON_FILE = ".jetson"
-
-def is_jetson():
-    return exists(JETSON_FILE) and isfile(JETSON_FILE)
 
 def get_gpu():
     return list_physical_devices('GPU')[0]
 
 def tweak_hardware_settings():
-    if not is_jetson():
+    if not IS_JETSON:
         return
 
     if GPU_ASYNC_MALLOC:

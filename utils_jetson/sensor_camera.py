@@ -4,14 +4,14 @@ from os import path
 from configs.model import IMAGE_SIZE, OUTPUT_PATH
 from core.loader import load_image_tensor
 
-VIDEO_PATH = "/dev/video0"
-TEMP_FILE = path.join(OUTPUT_PATH, "temp.png")
+VIDEO_PATH = '/dev/video0'
+TEMP_FILE = path.join(OUTPUT_PATH, 'temp.png')
 DEFAULT_WIDTH, DEFAULT_HEIGHT = IMAGE_SIZE
 
 def _get_camera(args):
     return videoSource(VIDEO_PATH, argv=args)
 
-def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
+def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format='rgb8'):
     """
     Opens the camera stream to take a single image capture.
 
@@ -25,8 +25,8 @@ def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
     """
 
     camera = _get_camera([
-        f"--input-width={width}",
-        f"--input-height={height}",
+        f'--input-width={width}',
+        f'--input-height={height}',
     ])
 
     camera.Open()
