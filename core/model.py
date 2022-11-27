@@ -27,6 +27,10 @@ def _build_model_compile_params(**kwargs):
         **kwargs,
     )
 
+def _merge_histories(a, b):
+    for metric in a.history:
+        a.history[metric] += b.history[metric]
+
 
 def compile_model(num_classes):
     INPUT_SHAPE = (*config.IMAGE_SIZE, 3)  # 3 channels for RGB
@@ -43,7 +47,7 @@ def compile_model(num_classes):
         trainable=False,
     )
 
-    # HACK: use functional API to ensure feature extractor runs in inference mode
+    # HACK: define model via functional API to ensure feature extractor runs in inference mode
     inputs = Input(shape=INPUT_SHAPE)
     x = data_augmentation(inputs)
     x = Rescaling(1./255)(x)
@@ -93,12 +97,13 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
 
     if config.MODEL_FINE_TUNING and recompile_model_for_fine_tuning(model):
         print(f'Fine tuning for up to {config.MODEL_NUM_FINE_TUNING_EPOCHS} epochs...')
-        _history = model.fit(
+        _history_fine = model.fit(
             train_data,
             epochs=last_epoch + config.MODEL_NUM_FINE_TUNING_EPOCHS,
             initial_epoch=last_epoch,
             **fit_params,
         )
+        _merge_histories(_history, _history_fine)  # fit creates two separate history dicts
         if use_export:
             export_trained_model(model, _history.history)
 
