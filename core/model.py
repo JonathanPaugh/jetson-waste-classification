@@ -71,7 +71,10 @@ def recompile_model_for_fine_tuning(model):
         return False  # fail silently if no feature extractor found
 
     feature_extractor.trainable = True
-    feature_extractor.arguments = dict(batch_norm_momentum=0.997)
+    feature_extractor.arguments = dict(
+        batch_norm_momentum=config.MODEL_FINE_TUNING_BATCH_NORM_MOMENTUM
+    )
+
     model.summary()
     model.compile(
         optimizer=adam_v2.Adam(learning_rate=config.MODEL_FINE_TUNING_LEARNING_RATE),
