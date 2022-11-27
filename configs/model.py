@@ -1,4 +1,3 @@
-import math
 import os
 from os.path import exists, isfile
 
@@ -15,7 +14,6 @@ IMAGE_SIZE = (96, 72)
 
 MODEL_NUM_EPOCHS = 5
 MODEL_WORKERS = os.cpu_count() | 1
-MODEL_BATCH_SIZE = int(math.pow(2, 3)) if IS_JETSON else int(math.pow(2, 6))
+MODEL_BATCH_SIZE = int(2 ** 3) if IS_JETSON else int(2 ** 6)
 
-LOADER_BATCH_SIZE = int(math.pow(2, 3)) if IS_JETSON else int(math.pow(2, 5))
-
+LOADER_BATCH_SIZE = int(2 ** 3) if IS_JETSON else int(2 ** 5)
