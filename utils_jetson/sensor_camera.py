@@ -1,17 +1,19 @@
 import os
-from jetson_utils import videoSource, saveImage, cudaDeviceSynchronize
 from os import path
-from configs.model import IMAGE_SIZE, OUTPUT_PATH
-import cv2
+from configs.model import IMAGE_SIZE, OUTPUT_PATH, IS_JETSON
+from core.loader import load_image_tensor
 
-VIDEO_PATH = "/dev/video0"
-TEMP_FILE = path.join(OUTPUT_PATH, "temp.png")
+if IS_JETSON:
+    from jetson_utils import videoSource, saveImage, cudaDeviceSynchronize
+
+VIDEO_PATH = '/dev/video0'
+TEMP_FILE = path.join(OUTPUT_PATH, 'temp.png')
 DEFAULT_WIDTH, DEFAULT_HEIGHT = IMAGE_SIZE
 
 def _get_camera(args):
     return videoSource(VIDEO_PATH, argv=args)
 
-def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
+def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format='rgb8'):
     """
     Opens the camera stream to take a single image capture.
 
@@ -21,12 +23,12 @@ def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
     :param width: Width to capture
     :param height: Height to capture
     :param format: {rgb8|rgba8|rgb32f|rgba32f}
-    :return: Numpy array of pixel values
+    :return: Tensor of pixel values
     """
 
     camera = _get_camera([
-        f"--input-width={width}",
-        f"--input-height={height}",
+        f'--input-width={width}',
+        f'--input-height={height}',
     ])
 
     camera.Open()
@@ -41,7 +43,7 @@ def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
 
     del capture
 
-    pixels = cv2.imread(TEMP_FILE)
+    image = load_image_tensor(TEMP_FILE)
     os.remove(TEMP_FILE)
 
-    return pixels
+    return image
