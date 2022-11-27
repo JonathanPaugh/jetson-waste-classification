@@ -70,27 +70,29 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
         return import_trained_model(model)
 
     fit_params = _build_fit_params(validation_data=test_data)
+    early_stopping = EarlyStopping(
+        monitor='loss',
+        patience=config.MODEL_EARLY_STOPPING_PATIENCE,
+    )
 
     _history = model.fit(
         train_data,
         epochs=config.MODEL_NUM_EPOCHS,
+        callbacks=[early_stopping],
         **fit_params
     )
+    if use_export:
+        export_trained_model(model, _history.history)
 
-    if recompile_model_for_fine_tuning(model):
+    if config.MODEL_FINE_TUNING and recompile_model_for_fine_tuning(model):
         _history = model.fit(
             train_data,
-            epochs=config.MODEL_NUM_EPOCHS + config.MODEL_NUM_FINE_TUNE_EPOCHS,
-            initial_epoch=config.MODEL_NUM_EPOCHS,
-            callbacks=[EarlyStopping(
-                monitor='loss',
-                patience=config.MODEL_EARLY_STOPPING_PATIENCE,
-            )],
+            epochs=_history.epoch[-1] + config.MODEL_NUM_FINE_TUNING_EPOCHS,
+            initial_epoch=_history.epoch[-1],
+            callbacks=[early_stopping],
             **fit_params,
         )
+        if use_export:
+            export_trained_model(model, _history.history)
 
-    history = _history.history
-    if use_export:
-        export_trained_model(model, history)
-
-    return history
+    return _history.history
