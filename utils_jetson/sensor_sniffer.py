@@ -1,2 +1,2 @@
 def sniff():
-    return "🐽"
+    return '🐽'
