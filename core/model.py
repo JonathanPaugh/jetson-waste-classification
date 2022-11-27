@@ -1,6 +1,7 @@
 from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, \
     InputLayer, Rescaling, RandomFlip, RandomRotation, RandomZoom
 from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow_hub import KerasLayer
 from utils.pickle import has_trained_model, import_trained_model, export_trained_model
 import configs.model as config
@@ -40,19 +41,23 @@ def compile_model(num_classes):
 
 def train_model(model, train_data, test_data, use_import=True, use_export=True):
     if use_import and has_trained_model():
-        history = import_trained_model(model)
-    else:
-        _history = model.fit(
-            train_data,
-            validation_data=test_data,
-            epochs=config.MODEL_NUM_EPOCHS,
-            batch_size=config.MODEL_BATCH_SIZE,
-            workers=config.MODEL_WORKERS,
-            use_multiprocessing=True
-        )
+        return import_trained_model(model)
 
-        history = _history.history
-        if use_export:
-            export_trained_model(model, history)
+    _history = model.fit(
+        train_data,
+        validation_data=test_data,
+        epochs=config.MODEL_NUM_EPOCHS,
+        batch_size=config.MODEL_BATCH_SIZE,
+        workers=config.MODEL_WORKERS,
+        use_multiprocessing=True,
+        callbacks=[EarlyStopping(
+            monitor='loss',
+            patience=config.MODEL_EARLY_STOPPING_PATIENCE,
+        )]
+    )
+
+    history = _history.history
+    if use_export:
+        export_trained_model(model, history)
 
     return history
