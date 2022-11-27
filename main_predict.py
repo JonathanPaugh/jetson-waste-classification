@@ -5,6 +5,7 @@ from core.loader import load_train_dataset, load_test_dataset, load_image_tensor
 from core.model import compile_model, train_model
 from library.option_input import run_menu, OptionInput
 from utils.pickle import import_trained_model, has_trained_model
+from utils_jetson import sensor_camera
 from utils_jetson.hardware import tweak_hardware_settings
 from utils_jetson.sensor_sniffer import sniff
 
@@ -44,17 +45,26 @@ def main():
             return
 
         import_trained_model(model)
-        image = load_image_tensor('dataset/test/cardboard1.jpg')
-        test_data = convert_to_tensor([image])
 
-        predictions = output_predictions(model, test_data, class_names)
+        def predict():
+            print("Taking snapshot...")
+            image = sensor_camera.snapshot()
+
+            print("Predicting...")
+            test_data = convert_to_tensor([image])
+            output_predictions(model, test_data, class_names)
+
+        run_menu("Ready to predict", [
+            OptionInput.MENU_EXIT,
+            (f'Predict snapshot', predict),
+        ])
 
     def predict_scent():
         print(sniff())
 
     run_menu("Prediction Menu", [
         OptionInput.MENU_EXIT,
-        (f'Predict with {DATASET_TEST_PATH}', predict_test),
+        (f'Predict from {DATASET_TEST_PATH} directory', predict_test),
         (f'Predict jetson nano pipeline', predict_jetson),
         (f'Predict scent', predict_scent),
     ])

@@ -7,5 +7,5 @@ from utils_jetson import sensor_camera
 while not input("Press enter to take snapshot"):
     image = sensor_camera.snapshot()
     file = path.join(OUTPUT_PATH, f"snapshot-{datetime.now()}.png")
-    cv2.imwrite(file, image)
+    cv2.imwrite(file, image.numpy())
     print(f"Wrote snapshot: {file}")

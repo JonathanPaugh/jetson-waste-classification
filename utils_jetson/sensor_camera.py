@@ -21,7 +21,7 @@ def snapshot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, format="rgb8"):
     :param width: Width to capture
     :param height: Height to capture
     :param format: {rgb8|rgba8|rgb32f|rgba32f}
-    :return: Numpy array of pixel values
+    :return: Tensor of pixel values
     """
 
     camera = _get_camera([
