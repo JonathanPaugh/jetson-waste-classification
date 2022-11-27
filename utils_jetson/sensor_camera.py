@@ -1,8 +1,10 @@
 import os
-from jetson_utils import videoSource, saveImage, cudaDeviceSynchronize
 from os import path
-from configs.model import IMAGE_SIZE, OUTPUT_PATH
+from configs.model import IMAGE_SIZE, OUTPUT_PATH, IS_JETSON
 from core.loader import load_image_tensor
+
+if IS_JETSON:
+    from jetson_utils import videoSource, saveImage, cudaDeviceSynchronize
 
 VIDEO_PATH = '/dev/video0'
 TEMP_FILE = path.join(OUTPUT_PATH, 'temp.png')

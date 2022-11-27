@@ -1,6 +1,6 @@
 from tensorflow.python.framework.ops import convert_to_tensor
 
-from configs.model import DATASET_TEST_PATH
+from configs.model import DATASET_TEST_PATH, IS_JETSON
 from core.loader import load_train_dataset, load_test_dataset
 from core.model import compile_model
 from library.option_input import run_menu, OptionInput
@@ -44,6 +44,10 @@ def main():
         output_predictions(model, test_data, class_names)
 
     def predict_jetson():
+        if not IS_JETSON:
+            print("Must use jetson to use the prediction pipeline")
+            return
+
         def predict():
             print('Taking snapshot...')
             image = sensor_camera.snapshot()

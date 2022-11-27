@@ -21,7 +21,7 @@ def compile_model(num_classes):
     ])
     model.compile(
         optimizer='adam',
-        loss=SparseCategoricalCrossentropy(from_logits=True),
+        loss=SparseCategoricalCrossentropy(),
         metrics=['accuracy'],
     )
     return model
