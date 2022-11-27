@@ -14,8 +14,10 @@ def _build_model_fit_params(**kwargs):
         workers=config.MODEL_WORKERS,
         use_multiprocessing=True,
         callbacks=[EarlyStopping(
-            monitor='loss',
+            monitor='val_accuracy',
+            mode='max',
             patience=config.MODEL_EARLY_STOPPING_PATIENCE,
+            restore_best_weights=True,
         )],
         **kwargs,
     )
@@ -53,6 +55,7 @@ def compile_model(num_classes):
     x = Rescaling(1./255)(x)
     x = feature_extractor(x, training=False)  # force run in inference mode
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
+    x = Dense(64, activation='relu')(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
 
@@ -110,7 +113,7 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
             initial_epoch=last_epoch,
             **fit_params,
         )
-        print(f'Model fine tuning complete in {_history_fine[-1] + 1} epoch(s)')
+        print(f'Model fine tuning complete in {_history_fine.epoch[-1] + 1} epoch(s)')
         _merge_histories(_history, _history_fine)  # fit creates two separate history dicts
         if use_export:
             export_trained_model(model, _history.history)
