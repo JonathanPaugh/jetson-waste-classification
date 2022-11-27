@@ -43,8 +43,6 @@ def main():
     def predict_test():
         test_data = load_test_dataset()
         predictions = output_predictions(model, test_data, class_names)
-        for class_name, probability in predictions:
-            play_sound(class_name)
 
     def predict_jetson():
         if not IS_JETSON:
@@ -57,7 +55,9 @@ def main():
 
             print('Predicting...')
             test_data = convert_to_tensor([image])
-            output_predictions(model, test_data, class_names)
+
+            class_name, probability = output_predictions(model, test_data, class_names)[0]
+            play_sound(class_name)
 
         run_menu('Ready to predict', [
             OptionInput.MENU_EXIT,
