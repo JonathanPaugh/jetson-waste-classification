@@ -39,7 +39,7 @@ def load_image_tensor(path, image_size=config.IMAGE_SIZE, color_mode='rgb', inte
         num_channels = 1
     else:
         raise ValueError(
-            '`color_mode` must be one of {"rbg", "rgba", "grayscale"}. '
+            '`color_mode` must be one of {"rgb", "rgba", "grayscale"}. '
             'Received: %s' % (color_mode,)
         )
 
