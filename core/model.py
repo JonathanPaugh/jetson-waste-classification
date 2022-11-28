@@ -55,7 +55,6 @@ def compile_model(num_classes):
     x = Rescaling(1./255)(x)
     x = feature_extractor(x, training=False)  # force run in inference mode
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
-    x = Dense(64, activation='relu')(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
 
