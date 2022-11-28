@@ -27,7 +27,10 @@ def main():
     train_data, test_data = load_train_dataset()
     model = compile_model(num_classes=len(train_data.class_names))
     history = train_model(model, train_data, test_data)
-    plot_history(history)
+
+    if not config.IS_JETSON:
+        plot_history(history)
+
     evaluate_model(model, test_data)
 
 
