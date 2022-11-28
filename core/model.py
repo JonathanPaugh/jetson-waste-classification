@@ -41,8 +41,7 @@ def _merge_histories(a, b):
 
 BASE_MODEL_FACTORY = InceptionV3
 BASE_MODEL_NAME = 'inception_v3'
-BASE_MODEL_FREEZE_BREAKPOINTS = [_index_layer(base_model.layers, layer_name)
-    for layer_name in ('mixed9', 'mixed8', 'mixed7', 'mixed6', 'mixed5')]
+BASE_MODEL_FREEZE_BREAKPOINTS = ('mixed9', 'mixed8', 'mixed7', 'mixed6', 'mixed5')
 
 
 def compile_model(num_classes):
@@ -64,7 +63,7 @@ def compile_model(num_classes):
     x = base_model(x, training=False)
     x = Flatten()(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
-    x = Dense(128, activation='relu')(x)
+    x = Dense(64, activation='relu')(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
@@ -91,8 +90,9 @@ def recompile_model_for_fine_tuning(model, freeze_breakpoint, learning_rate):
     except StopIteration:
         return False  # fail silently if no feature extractor found
 
+    freeze_breakpoint_index = _index_layer(base_model.layers, freeze_breakpoint)
     base_model.trainable = True
-    for layer in base_model.layers[:freeze_breakpoint+1]:
+    for layer in base_model.layers[:freeze_breakpoint_index+1]:
         layer.trainable = False
 
     model.summary()
@@ -126,7 +126,7 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
     for i, freeze_breakpoint in enumerate(BASE_MODEL_FREEZE_BREAKPOINTS):
         recompile_model_for_fine_tuning(model,
             freeze_breakpoint=freeze_breakpoint,
-            learning_rate=(config.MODEL_FINE_TUNING_LEARNING_RATE * 10 ** -i))
+            learning_rate=(config.MODEL_FINE_TUNING_LEARNING_RATE * 2 ** -i))
         print(f'Fine tuning model for up to'
             f' {config.MODEL_FINE_TUNING_NUM_EPOCHS} additional epochs...')
         _history_fine = model.fit(
