@@ -19,8 +19,11 @@ def _build_model_fit_params(**kwargs):
         workers=config.MODEL_WORKERS,
         use_multiprocessing=True,
         callbacks=[EarlyStopping(
+            monitor='val_accuracy',
+            mode='max',
             patience=config.MODEL_EARLY_STOPPING_PATIENCE,
             restore_best_weights=True,
+            verbose=1,
         )],
         **kwargs,
     )
