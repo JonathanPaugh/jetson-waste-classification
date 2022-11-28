@@ -8,10 +8,9 @@ from utils.pickle import has_trained_model, import_trained_model, export_trained
 import configs.model as config
 
 
-BASE_MODEL_FACTORY = InceptionV3
-BASE_MODEL_NAME = 'inception_v3'
-BASE_MODEL_UNFREEZE_BOUNDARY = 279  # bottom of penultimate layer
-
+def _index_layer(layers, name):
+    return layers.index(next((l for l in layers
+        if l.name == name)))
 
 def _build_model_fit_params(**kwargs):
     return dict(
@@ -38,6 +37,12 @@ def _build_model_compile_params(**kwargs):
 def _merge_histories(a, b):
     for metric in a.history:
         a.history[metric] += b.history[metric]
+
+
+BASE_MODEL_FACTORY = InceptionV3
+BASE_MODEL_NAME = 'inception_v3'
+BASE_MODEL_FREEZE_BREAKPOINTS = [_index_layer(base_model.layers, layer_name)
+    for layer_name in ('mixed9', 'mixed8', 'mixed7', 'mixed6', 'mixed5')]
 
 
 def compile_model(num_classes):
@@ -72,20 +77,27 @@ def compile_model(num_classes):
     return model
 
 
-def recompile_model_for_fine_tuning(model):
+def recompile_model_for_fine_tuning(model, freeze_breakpoint, learning_rate):
+    """
+    Recompiles the given model for fine tuning.
+    :param model: the base model (feature extractor)
+    :param freeze_breakpoint: the layer above which all layers should be unfrozen
+    :param learning_rate: the rate at which the unfrozen layers learn
+    :return: whether the model can be fine-tuned
+    """
     try:
         base_model = next((l for l in model.layers
             if l.name == BASE_MODEL_NAME))
-    except (StopIteration, TypeError):
+    except StopIteration:
         return False  # fail silently if no feature extractor found
 
     base_model.trainable = True
-    for layer in base_model.layers[:BASE_MODEL_UNFREEZE_BOUNDARY]:
+    for layer in base_model.layers[:freeze_breakpoint+1]:
         layer.trainable = False
 
     model.summary()
     model.compile(
-        optimizer=adam_v2.Adam(learning_rate=config.MODEL_FINE_TUNING_LEARNING_RATE),
+        optimizer=adam_v2.Adam(learning_rate=learning_rate),
         **_build_model_compile_params(),
     )
     return True
@@ -108,7 +120,13 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
     if use_export:
         export_trained_model(model, _history.history)
 
-    if config.MODEL_FINE_TUNING and recompile_model_for_fine_tuning(model):
+    if not config.MODEL_FINE_TUNING:
+        return _history.history
+
+    for i, freeze_breakpoint in enumerate(BASE_MODEL_FREEZE_BREAKPOINTS):
+        recompile_model_for_fine_tuning(model,
+            freeze_breakpoint=freeze_breakpoint,
+            learning_rate=(config.MODEL_FINE_TUNING_LEARNING_RATE * 10 ** -i))
         print(f'Fine tuning model for up to'
             f' {config.MODEL_FINE_TUNING_NUM_EPOCHS} additional epochs...')
         _history_fine = model.fit(
@@ -117,8 +135,9 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
             initial_epoch=last_epoch,
             **fit_params,
         )
-        _merge_histories(_history, _history_fine)  # fit creates two separate history dicts
+        _merge_histories(_history, _history_fine)
         if use_export:
             export_trained_model(model, _history.history)
+        last_epoch = _history_fine.epoch[-1] + 1
 
     return _history.history
