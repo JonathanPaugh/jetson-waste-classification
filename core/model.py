@@ -90,7 +90,7 @@ def recompile_model_for_fine_tuning(model, freeze_breakpoint, learning_rate):
     except StopIteration:
         return False  # fail silently if no feature extractor found
 
-    freeze_breakpoint_index = _index_layer(base_model.layers, layer_name=freeze_breakpoint)
+    freeze_breakpoint_index = _index_layer(base_model.layers, freeze_breakpoint)
     base_model.trainable = True
     for layer in base_model.layers[:freeze_breakpoint_index+1]:
         layer.trainable = False
