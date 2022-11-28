@@ -59,6 +59,8 @@ def compile_model(num_classes):
     x = base_model(x, training=False)
     x = Flatten()(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
+    x = Dense(128, activation='relu')(x)
+    x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
 
