@@ -8,12 +8,16 @@ from utils.plot import save_plot
 
 
 import configs.model as config
+from core.loader import load_train_dataset
+from core.model import compile_model, train_model
+from utils.plot import save_plot
+from utils_jetson.hardware import tweak_hardware_settings
 
 
 def plot_accuracy(history):
     fig, ax = plt.subplots()
-    ax.plot(history.history['accuracy'], label='train_accuracy')
-    ax.plot(history.history['val_accuracy'], label='val_accuracy')
+    ax.plot(history['accuracy'], label='Training accuracy')
+    ax.plot(history['val_accuracy'], label='Validation accuracy')
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Accuracy')
     ax.legend()
@@ -50,6 +54,7 @@ def plot_confusion_matrix(model, test_data):
     save_plot(fig, 'confusion_matrix.png')
 
 
+
 def evaluate_model(model, test_data, verbose=2):
     loss, accuracy, f1_score, precision, recall  = model.evaluate(test_data, verbose=verbose)
     print(f"After epoch {config.MODEL_NUM_EPOCHS} the model has a loss of {loss:.2f}, \
@@ -57,18 +62,12 @@ def evaluate_model(model, test_data, verbose=2):
           a precision of {precision:.2f}, and a recall of {recall:.2f}.")
  
 def main():
-    train_data, test_data = load_dataset()
+    tweak_hardware_settings()
+
+    train_data, test_data = load_train_dataset()
     model = compile_model(num_classes=len(train_data.class_names))
-    history = model.fit(
-        train_data,
-        validation_data=test_data,
-        epochs=config.MODEL_NUM_EPOCHS,
-        batch_size=config.MODEL_BATCH_SIZE,
-        workers=config.MODEL_WORKERS,
-    )
-    
+    history = train_model(model, train_data, test_data)
     plot_accuracy(history)
-    plot_f1_score(history)
     evaluate_model(model, test_data)
     plot_confusion_matrix(model, test_data)
 
