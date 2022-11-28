@@ -8,8 +8,8 @@ from utils_jetson.hardware import tweak_hardware_settings
 
 def plot_history(history):
     fig, ax = plt.subplots()
-    ax.plot(history['accuracy'], label='train_accuracy')
-    ax.plot(history['val_accuracy'], label='val_accuracy')
+    ax.plot(history['accuracy'], label='Training accuracy')
+    ax.plot(history['val_accuracy'], label='Validation accuracy')
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Accuracy')
     ax.legend()
