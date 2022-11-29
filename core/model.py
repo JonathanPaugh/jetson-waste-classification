@@ -41,7 +41,7 @@ def _merge_histories(a, b):
 
 BASE_MODEL_FACTORY = InceptionV3
 BASE_MODEL_NAME = 'inception_v3'
-BASE_MODEL_FREEZE_BREAKPOINTS = ('mixed9', 'mixed8', 'mixed7', 'mixed6', 'mixed5')
+BASE_MODEL_FREEZE_BREAKPOINTS = ('mixed1',)
 
 
 def compile_model(num_classes):
@@ -62,8 +62,6 @@ def compile_model(num_classes):
     x = preprocess_input(x)
     x = base_model(x, training=False)
     x = Flatten()(x)
-    x = Dropout(config.MODEL_DROPOUT_RATE)(x)
-    x = Dense(64, activation='relu')(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
