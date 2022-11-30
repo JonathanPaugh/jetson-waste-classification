@@ -50,14 +50,15 @@ def compile_model(num_classes):
     base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL(
         input_shape=INPUT_SHAPE,
         trainable=False,
+        pooling='avg',
     )
 
     inputs = Input(shape=INPUT_SHAPE)
     x = data_augmentation(inputs)
     x = base_model(x, training=False)
-    x = Dense(256, activation='relu')(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dense(64, activation='relu')(x)
+    x = Dense(2 ** 9, activation='relu')(x)
+    x = Dense(2 ** 8, activation='relu')(x)
+    x = Dense(2 ** 7, activation='relu')(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
@@ -125,7 +126,8 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
             learning_rate=learning_rate): break
 
         print(f'Fine tuning model for up to'
-            f' {config_tl.FINE_TUNING_NUM_EPOCHS_PER_BREAKPOINT} additional epochs...')
+            f' {config_tl.FINE_TUNING_NUM_EPOCHS_PER_BREAKPOINT} additional epochs'
+            f' (breakpoint {i+1} of {len(unfreeze_breakpoints)})...')
 
         _history_fine = model.fit(
             train_data,
