@@ -15,5 +15,7 @@ sound_map = {
 
 def play_sound(class_name):
     color, container = sound_map[class_name]
+    playsound(join(SOUND_DIRECTORY, f'{class_name}{SOUND_EXTENSION}'))
+    playsound(join(SOUND_DIRECTORY, f'{"detected"}{SOUND_EXTENSION}'))
     playsound(join(SOUND_DIRECTORY, f'{color}{SOUND_EXTENSION}'))
     playsound(join(SOUND_DIRECTORY, f'{container}{SOUND_EXTENSION}'))

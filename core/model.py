@@ -41,7 +41,7 @@ def _merge_histories(a, b):
 
 BASE_MODEL_FACTORY = InceptionV3
 BASE_MODEL_NAME = 'inception_v3'
-BASE_MODEL_FREEZE_BREAKPOINTS = ('mixed9', 'mixed8', 'mixed7', 'mixed6', 'mixed5')
+BASE_MODEL_FREEZE_BREAKPOINTS = ('mixed1',)
 
 
 def compile_model(num_classes):
