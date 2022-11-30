@@ -12,10 +12,11 @@ OUTPUT_PATH = 'dist'
 
 SEED = 0
 VALIDATION_SPLIT = 0.2
+IMAGE_SIZE = (384, 384)
 
-MODEL_FEATURE_EXTRACTOR, IMAGE_SIZE = config_transfer(size=299)
-MODEL_EARLY_STOPPING_PATIENCE = 3  # stop after x consecutive epochs with no improvement
-MODEL_NUM_EPOCHS = 1
+MODEL_FEATURE_EXTRACTOR = None  # config_transfer(size=384)
+MODEL_EARLY_STOPPING_PATIENCE = 7  # stop after x consecutive epochs with no improvement
+MODEL_NUM_EPOCHS = 50
 MODEL_FINE_TUNING = True
 MODEL_FINE_TUNING_NUM_EPOCHS = 1
 MODEL_FINE_TUNING_LEARNING_RATE = 1e-5         # defaults to 1e-4
