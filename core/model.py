@@ -1,16 +1,14 @@
-from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, \
-    Input, RandomFlip, RandomRotation, RandomZoom
+from tensorflow.python.keras.layers import Dropout, Dense, Input, \
+    RandomFlip, RandomRotation, RandomZoom
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.optimizers import adam_v2
 from tensorflow.python.keras.callbacks import EarlyStopping
-from tensorflow.python.keras.applications.inception_v3 import InceptionV3, preprocess_input
+
+from core.transfer_learning import ApplicationBasedTransferLearningModel
 from utils.pickle import has_trained_model, import_trained_model, export_trained_model
 import configs.model as config
+import configs.transfer_learning as config_tl
 
-
-def _index_layer(layers, name):
-    return layers.index(next((l for l in layers
-        if l.name == name)))
 
 def _build_model_fit_params(**kwargs):
     return dict(
@@ -18,8 +16,7 @@ def _build_model_fit_params(**kwargs):
         workers=config.MODEL_WORKERS,
         use_multiprocessing=True,
         callbacks=[EarlyStopping(
-            monitor='val_accuracy',
-            mode='max',
+            monitor=config.MODEL_EARLY_STOPPING_MONITOR,
             patience=config.MODEL_EARLY_STOPPING_PATIENCE,
             restore_best_weights=True,
             verbose=1,
@@ -39,13 +36,10 @@ def _merge_histories(a, b):
         a.history[metric] += b.history[metric]
 
 
-BASE_MODEL_FACTORY = InceptionV3
-BASE_MODEL_NAME = 'inception_v3'
-BASE_MODEL_FREEZE_BREAKPOINTS = ('mixed1',)
-
-
 def compile_model(num_classes):
-    INPUT_SHAPE = (*config.IMAGE_SIZE, 3)  # 3 channels for RGB
+    # make model-restricted input shape override configuration, if available
+    image_size = config_tl.TRANSFER_LEARNING_BASE_MODEL.IMAGE_SIZE or config.IMAGE_SIZE
+    INPUT_SHAPE = (*image_size, 3)  # 3 channels for RGB
 
     data_augmentation = Sequential([
         RandomFlip('horizontal_and_vertical'),
@@ -53,15 +47,18 @@ def compile_model(num_classes):
         RandomZoom(0.1),
     ], name='augmentation')
 
-    base_model = BASE_MODEL_FACTORY(input_shape=INPUT_SHAPE, include_top=False)
-    base_model.trainable = False
-    base_model.summary()
+    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL(
+        input_shape=INPUT_SHAPE,
+        trainable=False,
+        pooling='avg',
+    )
 
     inputs = Input(shape=INPUT_SHAPE)
     x = data_augmentation(inputs)
-    x = preprocess_input(x)
     x = base_model(x, training=False)
-    x = Flatten()(x)
+    x = Dense(2 ** 9, activation='relu')(x)
+    x = Dense(2 ** 8, activation='relu')(x)
+    x = Dense(2 ** 7, activation='relu')(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
@@ -74,24 +71,20 @@ def compile_model(num_classes):
     return model
 
 
-def recompile_model_for_fine_tuning(model, freeze_breakpoint, learning_rate):
+def recompile_model_for_fine_tuning(model, unfreeze_breakpoint, learning_rate):
     """
     Recompiles the given model for fine tuning.
     :param model: the base model (feature extractor)
-    :param freeze_breakpoint: the layer above which all layers should be unfrozen
+    :param unfreeze_breakpoint: the layer above which all layers should be unfrozen
     :param learning_rate: the rate at which the unfrozen layers learn
     :return: whether the model can be fine-tuned
     """
-    try:
-        base_model = next((l for l in model.layers
-            if l.name == BASE_MODEL_NAME))
-    except StopIteration:
-        return False  # fail silently if no feature extractor found
+    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL.find_base_model(model)
+    if base_model is None:
+        print('WARNING: Failed to locate base model; fine-tuning will be skipped')
+        return False
 
-    freeze_breakpoint_index = _index_layer(base_model.layers, freeze_breakpoint)
-    base_model.trainable = True
-    for layer in base_model.layers[:freeze_breakpoint_index+1]:
-        layer.trainable = False
+    base_model.unfreeze(unfreeze_breakpoint)
 
     model.summary()
     model.compile(
@@ -118,24 +111,35 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
     if use_export:
         export_trained_model(model, _history.history)
 
-    if not config.MODEL_FINE_TUNING:
+    if not config_tl.FINE_TUNING_ENABLED:
         return _history.history
 
-    for i, freeze_breakpoint in enumerate(BASE_MODEL_FREEZE_BREAKPOINTS):
-        recompile_model_for_fine_tuning(model,
-            freeze_breakpoint=freeze_breakpoint,
-            learning_rate=(config.MODEL_FINE_TUNING_LEARNING_RATE * 2 ** -i))
+    unfreeze_breakpoints = config_tl.FINE_TUNING_UNFREEZE_BREAKPOINTS \
+        if issubclass(config_tl.TRANSFER_LEARNING_BASE_MODEL, ApplicationBasedTransferLearningModel) \
+        else (None,)  # layer-based models are incompatible with breakpoints
+    for i, unfreeze_breakpoint in enumerate(unfreeze_breakpoints):
+        learning_rate = config_tl.FINE_TUNING_LEARNING_RATE \
+            * (1 / config_tl.FINE_TUNING_LEARNING_RATE_DECAY) ** -i
+
+        if not recompile_model_for_fine_tuning(model,
+            unfreeze_breakpoint=unfreeze_breakpoint,
+            learning_rate=learning_rate): break
+
         print(f'Fine tuning model for up to'
-            f' {config.MODEL_FINE_TUNING_NUM_EPOCHS} additional epochs...')
+            f' {config_tl.FINE_TUNING_NUM_EPOCHS_PER_BREAKPOINT} additional epochs'
+            f' (breakpoint {i+1} of {len(unfreeze_breakpoints)})...')
+
         _history_fine = model.fit(
             train_data,
-            epochs=last_epoch + config.MODEL_FINE_TUNING_NUM_EPOCHS,
+            epochs=last_epoch + config_tl.FINE_TUNING_NUM_EPOCHS_PER_BREAKPOINT,
             initial_epoch=last_epoch,
             **fit_params,
         )
         _merge_histories(_history, _history_fine)
+
         if use_export:
             export_trained_model(model, _history.history)
+
         last_epoch = _history_fine.epoch[-1] + 1
 
     return _history.history
