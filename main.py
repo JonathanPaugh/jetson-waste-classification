@@ -61,9 +61,10 @@ def main():
     evaluate_model(model, test_data)
 
     y_actual, y_pred = get_predicted_vs_actual(model, test_data)
-    cr = classification_report(y_actual, y_pred, target_names=test_data.class_names ,output_dict=True)
-    print(cr)
     plot_confusion_matrix(y_actual, y_pred, test_data)
+    print("Classification Report")
+    cr = classification_report(y_actual, y_pred, target_names=test_data.class_names)
+    print(cr)
 
   
 
