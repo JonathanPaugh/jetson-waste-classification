@@ -11,7 +11,7 @@ OUTPUT_PATH = 'dist'
 
 SEED = 0
 VALIDATION_SPLIT = 0.2
-IMAGE_SIZE = (384, 384)
+IMAGE_SIZE = (96, 96)
 
 MODEL_EARLY_STOPPING_MONITOR = 'val_accuracy'
 MODEL_EARLY_STOPPING_PATIENCE = 7  # stop after x consecutive epochs with no improvement

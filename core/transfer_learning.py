@@ -59,7 +59,7 @@ class ApplicationBasedTransferLearningModel(TransferLearningModel, ABC):
 
     def call(self, inputs, *args, **kwargs):
         x = self._preprocessor(inputs)
-        x = self._base_model(inputs, *args, **kwargs)
+        x = self._base_model(x, *args, **kwargs)
         x = Flatten()(x)
         return x
 
@@ -83,7 +83,7 @@ class LayerBasedTransferLearningModel(TransferLearningModel, ABC):
 
     def call(self, inputs, *args, **kwargs):
         x = Rescaling(1./255)(inputs)
-        x = self._base_model(inputs, *args, **kwargs)
+        x = self._base_model(x, *args, **kwargs)
         return x
 
     def unfreeze(self, layer_breakpoint: str = None):
