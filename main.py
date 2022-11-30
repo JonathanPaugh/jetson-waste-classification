@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from core.loader import load_train_dataset
-from utils.plot import save_plot
 import configs.model as config
 from core.loader import load_train_dataset
 from core.model import compile_model, train_model

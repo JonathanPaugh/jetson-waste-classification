@@ -12,7 +12,6 @@ def _index_layer(layers, name):
     return layers.index(next((l for l in layers
         if l.name == name)))
 
-
 def _build_model_fit_params(**kwargs):
     return dict(
         batch_size=config.MODEL_BATCH_SIZE,
