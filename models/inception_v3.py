@@ -4,7 +4,6 @@ from core.transfer_learning import ApplicationBasedTransferLearningModel
 
 
 class InceptionV3(ApplicationBasedTransferLearningModel):
-    key = 'inception_v3'
 
     @staticmethod
     def _create_base_model(*args, **kwargs):

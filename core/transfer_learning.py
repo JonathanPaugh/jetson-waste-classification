@@ -4,14 +4,15 @@ from tensorflow_hub import KerasLayer
 
 
 class TransferLearningModel(ABC, Layer):
-    IMAGE_SIZE = None
+    IMAGE_SIZE = None  # if provided, overrides configured image size
 
-    @staticmethod
-    @abstractmethod
-    def find_base_model(model):
+    @classmethod
+    def find_base_model(cls, model):
         """
         Locates the base model layer in an existing compiled model.
         """
+        return next((layer for layer in model.layers
+            if isinstance(layer, cls)), None)
 
     @abstractmethod
     def unfreeze(self, layer_breakpoint: str = None):
@@ -22,7 +23,6 @@ class TransferLearningModel(ABC, Layer):
 
 
 class ApplicationBasedTransferLearningModel(TransferLearningModel, ABC):
-    key = ''
 
     @staticmethod
     @abstractmethod
@@ -44,11 +44,6 @@ class ApplicationBasedTransferLearningModel(TransferLearningModel, ABC):
     def _index_base_model_layer_by_name(model, name):
         return model.layers.index(next((layer for layer in model.layers
             if layer.name == name), None))
-
-    @staticmethod
-    def find_base_model(model):
-        return next((layer for layer in model.layers
-            if layer.name == cls.key), None)
 
     def __init__(self, *args, factory=None, preprocessor=None, \
                  input_shape=None, trainable=True, **kwargs):
@@ -77,12 +72,6 @@ class ApplicationBasedTransferLearningModel(TransferLearningModel, ABC):
 
 class LayerBasedTransferLearningModel(TransferLearningModel, ABC):
     handle = None
-
-    @classmethod
-    def find_base_model(cls, model):
-        # HACK: obviously won't work if multiple keras layers are used
-        return next((layer for layer in model.layers
-            if isinstance(layer, cls)), None)
 
     def __init__(self, *args, handle=None, input_shape=None, trainable=True, **kwargs):
         super().__init__()

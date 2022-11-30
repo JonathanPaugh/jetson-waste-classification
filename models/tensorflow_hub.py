@@ -6,7 +6,7 @@ Note that using these models may require configuring specific image sizes in `co
 from core.transfer_learning import LayerBasedTransferLearningModel
 
 
-class InceptionV3(LayerBasedTransferLearningModel):  # uses 299x299 by default (limited?)
+class InceptionV3(LayerBasedTransferLearningModel):
     handle = 'https://tfhub.dev/google/imagenet/inception_v3/feature_vector/5'
 
 class MobileNetV2x224(LayerBasedTransferLearningModel):

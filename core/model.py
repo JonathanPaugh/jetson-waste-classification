@@ -16,8 +16,7 @@ def _build_model_fit_params(**kwargs):
         workers=config.MODEL_WORKERS,
         use_multiprocessing=True,
         callbacks=[EarlyStopping(
-            monitor='val_accuracy',
-            mode='max',
+            monitor=config.MODEL_EARLY_STOPPING_MONITOR,
             patience=config.MODEL_EARLY_STOPPING_PATIENCE,
             restore_best_weights=True,
             verbose=1,
@@ -38,7 +37,8 @@ def _merge_histories(a, b):
 
 
 def compile_model(num_classes):
-    image_size = config_tl.TRANSFER_LEARNING_MODEL.IMAGE_SIZE or config.IMAGE_SIZE
+    # make model-restricted input shape override configuration, if available
+    image_size = config_tl.TRANSFER_LEARNING_BASE_MODEL.IMAGE_SIZE or config.IMAGE_SIZE
     INPUT_SHAPE = (*image_size, 3)  # 3 channels for RGB
 
     data_augmentation = Sequential([
@@ -47,7 +47,7 @@ def compile_model(num_classes):
         RandomZoom(0.1),
     ], name='augmentation')
 
-    base_model = config_tl.TRANSFER_LEARNING_MODEL(
+    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL(
         input_shape=INPUT_SHAPE,
         trainable=False,
     )
@@ -55,10 +55,10 @@ def compile_model(num_classes):
     inputs = Input(shape=INPUT_SHAPE)
     x = data_augmentation(inputs)
     x = base_model(x, training=False)
-    # x = Dense(256, activation='relu')(x)
-    # x = Dense(128, activation='relu')(x)
-    # x = Dense(64, activation='relu')(x)
-    # x = Dropout(config.MODEL_DROPOUT_RATE)(x)
+    x = Dense(256, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
+    x = Dense(64, activation='relu')(x)
+    x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
 
@@ -78,9 +78,9 @@ def recompile_model_for_fine_tuning(model, unfreeze_breakpoint, learning_rate):
     :param learning_rate: the rate at which the unfrozen layers learn
     :return: whether the model can be fine-tuned
     """
-    base_model = config_tl.TRANSFER_LEARNING_MODEL.find_base_model(model)
+    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL.find_base_model(model)
     if base_model is None:
-        print('WARNING: Failed to locate base model; fine-tuning will be skipped', model.layers)
+        print('WARNING: Failed to locate base model; fine-tuning will be skipped')
         return False
 
     base_model.unfreeze(unfreeze_breakpoint)
@@ -114,25 +114,27 @@ def train_model(model, train_data, test_data, use_import=True, use_export=True):
         return _history.history
 
     unfreeze_breakpoints = config_tl.FINE_TUNING_UNFREEZE_BREAKPOINTS \
-        if issubclass(config_tl.TRANSFER_LEARNING_MODEL, ApplicationBasedTransferLearningModel) \
+        if issubclass(config_tl.TRANSFER_LEARNING_BASE_MODEL, ApplicationBasedTransferLearningModel) \
         else (None,)  # layer-based models are incompatible with breakpoints
     for i, unfreeze_breakpoint in enumerate(unfreeze_breakpoints):
         learning_rate = config_tl.FINE_TUNING_LEARNING_RATE \
             * (1 / config_tl.FINE_TUNING_LEARNING_RATE_DECAY) ** -i
+
         if not recompile_model_for_fine_tuning(model,
             unfreeze_breakpoint=unfreeze_breakpoint,
             learning_rate=learning_rate): break
 
         print(f'Fine tuning model for up to'
-            f' {config_tl.FINE_TUNING_NUM_EPOCHS} additional epochs...')
+            f' {config_tl.FINE_TUNING_NUM_EPOCHS_PER_BREAKPOINT} additional epochs...')
 
         _history_fine = model.fit(
             train_data,
-            epochs=last_epoch + config_tl.FINE_TUNING_NUM_EPOCHS,
+            epochs=last_epoch + config_tl.FINE_TUNING_NUM_EPOCHS_PER_BREAKPOINT,
             initial_epoch=last_epoch,
             **fit_params,
         )
         _merge_histories(_history, _history_fine)
+
         if use_export:
             export_trained_model(model, _history.history)
 
