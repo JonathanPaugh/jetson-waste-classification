@@ -1,4 +1,4 @@
-from models.inception_v3 import InceptionV3
+from models.tensorflow_hub import InceptionV3
 
 # NOTE: unfreeze breakpoints and chosen model are generally codependent
 TRANSFER_LEARNING_BASE_MODEL = InceptionV3

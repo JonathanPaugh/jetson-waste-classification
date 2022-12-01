@@ -50,15 +50,11 @@ def compile_model(num_classes):
     base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL(
         input_shape=INPUT_SHAPE,
         trainable=False,
-        pooling='avg',
     )
 
     inputs = Input(shape=INPUT_SHAPE)
     x = data_augmentation(inputs)
     x = base_model(x, training=False)
-    x = Dense(2 ** 9, activation='relu')(x)
-    x = Dense(2 ** 8, activation='relu')(x)
-    x = Dense(2 ** 7, activation='relu')(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
