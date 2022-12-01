@@ -1,5 +1,5 @@
 from tensorflow.python.keras.layers import Dropout, Dense, Input, \
-    RandomFlip, RandomRotation, RandomZoom
+    RandomFlip, RandomRotation, RandomZoom, Rescaling
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.optimizers import adam_v2
 from tensorflow.python.keras.callbacks import EarlyStopping
@@ -50,15 +50,13 @@ def compile_model(num_classes):
     base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL(
         input_shape=INPUT_SHAPE,
         trainable=False,
-        pooling='avg',
+        # pooling='avg',
     )
 
     inputs = Input(shape=INPUT_SHAPE)
     x = data_augmentation(inputs)
+    x = Rescaling(1./255)(x)
     x = base_model(x, training=False)
-    x = Dense(2 ** 9, activation='relu')(x)
-    x = Dense(2 ** 8, activation='relu')(x)
-    x = Dense(2 ** 7, activation='relu')(x)
     x = Dropout(config.MODEL_DROPOUT_RATE)(x)
     outputs = Dense(num_classes, activation='softmax')(x)
     model = Model(inputs, outputs)
