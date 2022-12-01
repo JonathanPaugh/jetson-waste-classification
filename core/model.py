@@ -1,9 +1,11 @@
 from tensorflow.python.keras.layers import Dropout, Dense, Input, \
-    RandomFlip, RandomRotation, RandomZoom, Rescaling
+    Rescaling, RandomFlip, RandomRotation, RandomZoom
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.optimizers import adam_v2
 from tensorflow.python.keras.callbacks import EarlyStopping
+from tensorflow_hub import KerasLayer
 
+from models.tensorflow_hub import InceptionV3
 from core.transfer_learning import ApplicationBasedTransferLearningModel
 from utils.pickle import has_trained_model, import_trained_model, export_trained_model
 import configs.model as config
@@ -47,10 +49,10 @@ def compile_model(num_classes):
         RandomZoom(0.1),
     ], name='augmentation')
 
-    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL(
+    base_model = KerasLayer(
+        InceptionV3.handle,
         input_shape=INPUT_SHAPE,
         trainable=False,
-        # pooling='avg',
     )
 
     inputs = Input(shape=INPUT_SHAPE)
@@ -77,12 +79,14 @@ def recompile_model_for_fine_tuning(model, unfreeze_breakpoint, learning_rate):
     :param learning_rate: the rate at which the unfrozen layers learn
     :return: whether the model can be fine-tuned
     """
-    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL.find_base_model(model)
+    base_model = next((layer for layer in model.layers
+        if isinstance(layer, KerasLayer)), None)
     if base_model is None:
         print('WARNING: Failed to locate base model; fine-tuning will be skipped')
         return False
 
-    base_model.unfreeze(unfreeze_breakpoint)
+    base_model.trainable = True
+    base_model.arguments = dict(batch_norm_momentum=0.997)
 
     model.summary()
     model.compile(
