@@ -35,9 +35,17 @@ def plot_confusion_matrix(y_actual, y_pred, test_data):
     ax.set_xticklabels(test_data.class_names)
     ax.set_yticklabels(test_data.class_names)
     ax.set_title('Confusion Matrix')
+    
     for i in range(len(test_data.class_names)):
         for j in range(len(test_data.class_names)):
-            ax.text(j, i, cm[i, j], ha='center', va='center', color='blue')
+            if (cm[i, j] >  cm.max() / 2):
+                ax.text(j, i, cm[i, j], ha='center', va='center', color='white')
+            else:   
+                ax.text(j, i, cm[i, j], ha='center', va='center', color='black')
+    
+
+            
+    fig.colorbar(ax.imshow(cm, cmap=plt.cm.Blues))
     save_plot(fig, 'confusion_matrix.png')
     plt.close(fig)
 
