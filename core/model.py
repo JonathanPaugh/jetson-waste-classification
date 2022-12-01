@@ -79,12 +79,14 @@ def recompile_model_for_fine_tuning(model, unfreeze_breakpoint, learning_rate):
     :param learning_rate: the rate at which the unfrozen layers learn
     :return: whether the model can be fine-tuned
     """
-    base_model = config_tl.TRANSFER_LEARNING_BASE_MODEL.find_base_model(model)
+    base_model = next((layer for layer in model.layers
+        if isinstance(layer, KerasLayer)), None)
     if base_model is None:
         print('WARNING: Failed to locate base model; fine-tuning will be skipped')
         return False
 
-    base_model.unfreeze(unfreeze_breakpoint)
+    base_model.trainable = True
+    base_model.arguments = dict(batch_norm_momentum=0.997)
 
     model.summary()
     model.compile(
