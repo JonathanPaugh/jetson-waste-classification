@@ -68,4 +68,7 @@ def get_evaluation_metrics(history, model, test_data):
 
     print("Classification Report")
     print(classification_report(y_actual, y_pred, target_names=test_data.class_names))
+    with open("dist/classification_report.txt", "a") as f:
+        f.write(classification_report(y_actual, y_pred, target_names=test_data.class_names))
+      
    
