@@ -68,9 +68,9 @@ def output_training_results(history, model, test_data):
     y_actual, y_pred = get_predicted_vs_actual(model, test_data)
     plot_confusion_matrix(y_actual, y_pred, test_data)
 
-    print("Classification Report")
+    print('Classification Report')
     print(classification_report(y_actual, y_pred, target_names=test_data.class_names))
-    with open("dist/classification_report.txt", "a") as f:
+    with open('dist/classification_report.txt', 'a') as f:
         f.write(classification_report(y_actual, y_pred, target_names=test_data.class_names))
       
    
