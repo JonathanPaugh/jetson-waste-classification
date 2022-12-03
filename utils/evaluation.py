@@ -1,12 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import configs.model as config
+
 from utils.plot import save_plot
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
 
+if not config.IS_JETSON:
+    from sklearn.metrics import classification_report
+    from sklearn.metrics import confusion_matrix
 
-
+def evaluate_model(model, test_data, verbose=2):
+    _, test_acc = model.evaluate(test_data, verbose=verbose)
+    print(f'Accuracy on test set:'
+          f' {test_acc * 100:.2f}%')
 
 def plot_history(history):
     fig, ax = plt.subplots()
@@ -17,12 +22,6 @@ def plot_history(history):
     ax.legend()
     save_plot(fig, 'history.png')
     plt.close(fig)
-
-
-def evaluate_model(model, test_data, verbose=2):
-    _, test_acc = model.evaluate(test_data, verbose=verbose)
-    print(f'Accuracy on test set:'
-          f' {test_acc * 100:.2f}%')
 
 def plot_confusion_matrix(y_actual, y_pred, test_data):
     cm = confusion_matrix(y_actual, y_pred)
@@ -57,18 +56,21 @@ def get_predicted_vs_actual(model, test_data):
         y_pred.extend(np.argmax(model.predict(x), axis=-1))
     return y_actual, y_pred
 
-def get_evaluation_metrics(history, model, test_data):
-   
-    plot_history(history)
-
+def output_training_results(history, model, test_data):
     evaluate_model(model, test_data)
+
+    # Anything that requires display below here
+    if config.IS_JETSON:
+        return
+
+    plot_history(history)
 
     y_actual, y_pred = get_predicted_vs_actual(model, test_data)
     plot_confusion_matrix(y_actual, y_pred, test_data)
 
-    print("Classification Report")
+    print('Classification Report')
     print(classification_report(y_actual, y_pred, target_names=test_data.class_names))
-    with open("dist/classification_report.txt", "a") as f:
+    with open('dist/classification_report.txt', 'a') as f:
         f.write(classification_report(y_actual, y_pred, target_names=test_data.class_names))
       
    
