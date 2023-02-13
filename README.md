@@ -1,4 +1,4 @@
-# jetson-waste-classification
+# Jetson Waste Classification
 > Non-Perishable Waste Classification
 
 This repo contains Group 5's source code for the COMP 4989 (BCIT Fall 2022) self-directed project.
